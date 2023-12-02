@@ -56,13 +56,17 @@ fn part_2(instructions: &Vec<String>) -> i32 {
         let mut indices: usize = 0;
         let mut left_not_found: bool = true;
         let mut right_not_found: bool = true;
+        let mut left_digit = None;
+        let mut right_digit = None;
 
         let mut concatenated_nums = String::new();
-        while indices < instruction.len() && last != 0 {
+        // while indices < instruction.len() && last != 0 {
+        while left_not_found || right_not_found {
             if left_not_found {
                 // println!("{instruction}");
 
                 for digit in &digits {
+                    // println!("here1: {:?}", &instruction[0..indices + 1]);
                     if instruction[0..indices + 1].contains(digit) {
                         let _x: &str = &instruction[0..indices + 1];
                         let digit_value = match digit.as_str() {
@@ -77,14 +81,17 @@ fn part_2(instructions: &Vec<String>) -> i32 {
                             "nine" => "9",
                             _ => continue,
                         };
+                        // println!("here4 {digit_value}");
 
                         concatenated_nums.push_str(digit_value);
+                        left_digit = Some(digit_value.chars().nth(0).unwrap());
                         left_not_found = false;
                         break;
                     } else if let Some(n) = instruction.chars().nth(indices) {
                         if n.is_digit(10) {
                             concatenated_nums.push(n);
-                            // indices = 0;
+                            // indices = instruction.len();
+                            left_digit = Some(n);
                             left_not_found = false;
                             break;
                         }
@@ -95,6 +102,7 @@ fn part_2(instructions: &Vec<String>) -> i32 {
             }
             if right_not_found {
                 for digit in &digits {
+                    // println!("here2: {:?}", &instruction[last..instruction.len()]);
                     if instruction[last..instruction.len()].contains(digit) {
                         right_not_found = false;
                         let digit_value = match digit.as_str() {
@@ -110,13 +118,17 @@ fn part_2(instructions: &Vec<String>) -> i32 {
                             _ => continue,
                         };
                         concatenated_nums.push_str(digit_value);
+                        // println!("last 1");
                         last = 0;
+                        right_digit = Some(digit_value.chars().nth(0).unwrap());
                         right_not_found = false;
                         break;
                     } else if let Some(n) = instruction.chars().nth(last) {
                         if n.is_digit(10) {
                             concatenated_nums.push(n);
-                            last = 0;
+                            // println!("last 2");
+                            // last = 0;
+                            right_digit = Some(n);
                             right_not_found = false;
                             break;
                         }
@@ -126,14 +138,14 @@ fn part_2(instructions: &Vec<String>) -> i32 {
                     last -= 1;
                 }
             }
+            // println!("{indices} {last}");
         }
-        println!("{concatenated_nums}, {instruction}");
         let concatenated_nums: Result<i32, std::num::ParseIntError> = concatenated_nums.parse();
 
-        match concatenated_nums {
-            Ok(n) => result += n,
-            Err(e) => println!("Failed to parse string to i32: {}", e),
-        }
+        let final_digit = format!("{}{}", left_digit.unwrap(), right_digit.unwrap()).parse::<i32>().unwrap();
+        println!("{final_digit} {instruction}");
+
+        result += final_digit;
     }
 
     return result;
@@ -141,7 +153,8 @@ fn part_2(instructions: &Vec<String>) -> i32 {
 
 fn main() {
     let input = read_to_string("input.txt").unwrap();
-    let data: Vec<String> = input.split("\n").map(|line| line.to_string()).collect();
+    let mut data: Vec<String> = input.split("\n").map(|line| line.to_string()).collect();
+    data.retain(|instruction| !instruction.is_empty());
 
     // let part_1_result = part_1(&data);
     // println!("{part_1_result}");
